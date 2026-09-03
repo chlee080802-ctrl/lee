@@ -66,7 +66,7 @@ hr{border:0;border-top:1px solid var(--line);margin:14px 0}
 <section id="summary" class="page"><div class="row"><div><h2 style="margin:0">薪資結算</h2><div class="sub" id="sumMonth"></div></div></div>
 <div class="card"><div class="row"><span>正常工資</span><b id="normalPay">$0</b></div><div class="row" style="margin-top:12px"><span>平日加班費</span><b id="otPay">$0</b></div><div class="row" style="margin-top:12px"><span>其他待確認</span><b id="specialPay">$0</b></div><div class="row" style="margin-top:12px"><span>本月勞保扣款</span><b id="insurancePay">$0</b></div><hr><div class="row"><strong>預估實領薪資</strong><strong class="amount" style="font-size:28px" id="sumPay">$0</strong></div></div>
 <div class="card"><h3 style="margin-top:0">計算明細</h3><div id="breakdown"></div></div>
-<div class="card small">第一版會精確保留小數工時。平日加班依設定的第 1～2 小時及第 3～4 小時倍率計算；休息日、例假、國定假日等特殊情況會標示「待確認」，避免誤套公式。</div></section>
+<div class="card small">第一版會精確保留小數工時。平日加班依設定的第 1～2 小時及第 3 小時起倍率計算；休息日、例假、國定假日等特殊情況會標示「待確認」，避免誤套公式。</div></section>
 
 <section id="settings" class="page"><h2 style="margin:0">設定</h2>
 <div class="card" id="installCard">
@@ -81,7 +81,7 @@ hr{border:0;border-top:1px solid var(--line);margin:14px 0}
     若「安裝 App」沒有出現，請用 Chrome 開啟本網站，再從瀏覽器選單加入主畫面。
   </p>
 </div>
-<div class="card"><h3 style="margin-top:0">加班倍率</h3><form id="settingsForm"><label>第 1～2 小時倍率<input id="mult1" type="number" step="0.01" min="1" max="5"></label><label>第 3～4 小時倍率<input id="mult2" type="number" step="0.01" min="1" max="5"></label><button class="btn" type="submit">儲存設定</button></form><p class="small">預設 1.34 / 1.67。若你希望完全依公司薪資單，可自行修改。</p></div>
+<div class="card"><h3 style="margin-top:0">加班倍率</h3><form id="settingsForm"><label>第 1～2 小時倍率<input id="mult1" type="number" step="0.01" min="1" max="5"></label><label>第 3 小時起倍率<input id="mult2" type="number" step="0.01" min="1" max="5"></label><button class="btn" type="submit">儲存設定</button></form><p class="small">預設 1.34 / 1.67。若你希望完全依公司薪資單，可自行修改。</p></div>
 <div class="card"><h3 style="margin-top:0">2026 最低工資</h3><div class="grid"><div class="stat"><span class="label">最低時薪</span><b>$196</b></div><div class="stat"><span class="label">最低月薪</span><b>$29,500</b></div></div></div>
 <div class="card"><h3 style="margin-top:0">資料保存</h3><div class="formgrid"><button class="btn" type="button" onclick="exportData()">⬇️ 匯出備份</button><button class="btn secondary" type="button" onclick="document.getElementById('restoreFile').click()">⬆️ 還原資料</button></div><input id="restoreFile" type="file" accept="application/json,.json" style="display:none" onchange="importData(this)"><p class="small" style="margin-bottom:0">資料會自動保存在這支手機的 Chrome。換手機時，先在舊手機匯出備份，再到新手機選「還原資料」。</p></div><div class="card"><h3 style="margin-top:0">其他資料</h3><button class="btn danger" type="button" onclick="resetAll()">清除全部資料</button></div>
 </section>
@@ -114,8 +114,8 @@ let calDate=new Date(),selectedDate=null;
 const $=id=>document.getElementById(id),pad=n=>String(n).padStart(2,'0');
 const money=n=>'$'+Math.round(n).toLocaleString('zh-TW');
 const fmt=n=>(Math.round(n*100)/100).toString();
-function save(){localStorage.setItem(KEY,JSON.stringify(db));window.__TW_DB__=db;render();if(window.__cloudUser&&window.__cloudSave){clearTimeout(window.__cloudSaveTimer);window.__cloudSaveTimer=setTimeout(()=>window.__cloudSave(window.__cloudUser).catch(e=>console.error('雲端同步失敗',e)),350)}}
-function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]||c))}
+function save(){localStorage.setItem(KEY,JSON.stringify(db));window.__TW_DB__=db;render();if(window.__cloudUser&&window.__cloudSave){clearTimeout(window.__cloudSaveTimer);window.__cloudSaveTimer=setTimeout(()=>window.__cloudSave(window.__cloudUser).catch(e=>console.error('雲端同步失敗',e)),350)} }
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function toast(t){$('toast').textContent=t;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',1700)}
 function showPage(p){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));$(p).classList.add('active');document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x.dataset.page===p));render()}
 function closeModal(id){$(id).classList.remove('open')}
@@ -125,15 +125,15 @@ function fillDate(d){let ds=typeof d==='string'?d:`${d.getFullYear()}-${pad(d.ge
 function openEntry(date){if(!db.jobs.length){toast('請先建立工作');showPage('jobs');return}$('entryModal').classList.add('open');$('editEntryId').value='';$('entryModalTitle').textContent='新增班次';$('entryJob').innerHTML=db.jobs.map(j=>`<option value="${j.id}" ${j.id===db.activeJob?'selected':''}>${esc(j.name)}</option>`).join('');let d=new Date();fillDate(date||d);$('startTime').value='09:00';$('endTime').value='17:00';$('breakMin').value=0;$('entryWorkName').value='';$('entryInsurance').value=0;$('dayType').value='weekday'}
 function editEntry(id){let e=db.entries.find(x=>x.id===id);if(!e)return;$('entryModal').classList.add('open');$('editEntryId').value=id;$('entryModalTitle').textContent='編輯班次';$('entryJob').innerHTML=db.jobs.map(j=>`<option value="${j.id}" ${j.id===e.jobId?'selected':''}>${esc(j.name)}</option>`).join('');$('startDate').value=e.start.slice(0,10);$('startTime').value=e.start.slice(11,16);$('endDate').value=e.end.slice(0,10);$('endTime').value=e.end.slice(11,16);$('breakMin').value=e.breakMin||0;$('entryWorkName').value=e.workName||'';$('entryInsurance').value=e.insuranceAmount||0;$('dayType').value=e.dayType||'weekday'}
 function duration(e){return Math.max(0,(new Date(e.end)-new Date(e.start))/3600000-Math.max(0,e.breakMin||0)/60)}
-function calcEntry(e){let j=db.jobs.find(x=>x.id===e.jobId);if(!j)return{hours:0,normal:0,ot:0,rate:0,otPay:0,total:0,special:true};let h=duration(e),normal=Math.min(h,j.dailyHours||8),ot=Math.max(0,h-normal),rate=j.payType==='hourly'?j.amount:j.amount/30/8;if(e.dayType!=='weekday')return{hours:h,normal:0,ot:h,rate,otPay:0,total:0,special:true};let ot1=Math.min(ot,2),ot2=Math.min(Math.max(ot-2,0),2),otRest=Math.max(ot-4,0),otPay=ot1*rate*db.settings.m1+ot2*rate*db.settings.m2;return{hours:h,normal,ot,rate,otPay,total:normal*rate+otPay,ot1,ot2,otRest,special:false}}
+function calcEntry(e){let j=db.jobs.find(x=>x.id===e.jobId);if(!j)return{hours:0,normal:0,ot:0,rate:0,otPay:0,total:0,special:true};let h=duration(e),normal=Math.min(h,j.dailyHours||8),ot=Math.max(0,h-normal),rate=j.payType==='hourly'?j.amount:j.amount/30/8;if(e.dayType!=='weekday')return{hours:h,normal:0,ot:h,rate,otPay:0,total:0,special:true};let ot1=Math.min(ot,2),ot2=Math.max(ot-2,0),otRest=0,otPay=ot1*rate*db.settings.m1+ot2*rate*db.settings.m2;return{hours:h,normal,ot,rate,otPay,total:normal*rate+otPay,ot1,ot2,otRest,special:false}}
 function monthKey(d=new Date()){return `${d.getFullYear()}-${pad(d.getMonth()+1)}`}
 function entryDate(e){return e.start.slice(0,10)}
 function entryHtml(e){let j=db.jobs.find(x=>x.id===e.jobId),c=calcEntry(e),type={weekday:'平日',holiday:'特殊／國定假日',rest:'休息日',regular:'例假'}[e.dayType]||'平日';return `<div class="entry"><div class="row"><div><h4>${esc(e.workName||j?.name||'已刪除工作')}</h4><p>${e.start.replace('T',' ')} → ${e.end.replace('T',' ')}</p><p>休息 ${e.breakMin||0} 分鐘 · ${type} · <b>${fmt(c.hours)}h</b> · 勞保扣款 ${money(e.insuranceAmount||0)}</p></div><div style="text-align:right">${c.special?'<span class="pill badge-warn">待確認</span>':`<b class="positive">${money(c.total)}</b>`}<div style="margin-top:8px;white-space:nowrap"><button class="btn ghost" onclick="editEntry('${e.id}')">編輯</button> <button class="btn danger" onclick="deleteEntry('${e.id}')">刪除</button></div></div></div></div>`}
-  function renderCalendar(){let y=calDate.getFullYear(),m=calDate.getMonth(),first=new Date(y,m,1),last=new Date(y,m+1,0),start=first.getDay(),days=last.getDate();$('calTitle').textContent=`${y} 年 ${m+1} 月`;let html='<div class="cal">';['日','一','二','三','四','五','六'].forEach(x=>html+=`<div class="calhead">${x}</div>`);let prev=new Date(y,m,0).getDate();for(let i=0;i<start;i++)html+=`<div class="calday muted"><div class="calnum">${prev-start+i+1}</div></div>`;for(let d=1;d<=days;d++){let key=`${y}-${pad(m+1)}-${pad(d)}`,es=db.entries.filter(e=>entryDate(e)===key).sort((a,b)=>a.start.localeCompare(b.start)),h=0,p=0;es.forEach(e=>{let c=calcEntry(e);h+=c.hours;p+=c.total});let now=new Date(),today=now.getFullYear()===y&&now.getMonth()===m&&now.getDate()===d;let shifts=es.map(e=>{let j=db.jobs.find(x=>x.id===e.jobId);let name=(e.workName||'').trim()||((j?.name||'').trim())||'未命名工作';let st=e.start.slice(11,16),en=e.end.slice(11,16),col=j?.color||'#315efb';let bg=col+'22';return `<div class="calshift" style="--job-color:${col};--job-bg:${bg}" title="${esc(name)} ${st}-${en}">${esc(name)}</div>`}).join('');html+=`<div class="calday ${today?'today':''}" onclick="openDay('${key}')"><div class="calnum">${d}${es.length?'<span class="caldot"></span>':''}</div>${es.length?`<div class="calwork">${shifts}</div><div class="calhours">${fmt(h)}h</div><div class="calpay">${p?money(p):'待確認'}</div>`:''}</div>`}let tail=(7-(start+days)%7)%7;for(let i=1;i<=tail;i++)html+=`<div class="calday muted"><div class="calnum">${i}</div></div>`;html+='</div>';$('calendarGrid').innerHTML=html;let es=db.entries.filter(e=>entryDate(e).slice(0,7)===monthKey(calDate)),hours=0,ot=0,pay=0,daysSet=new Set();es.forEach(e=>{let c=calcEntry(e);hours+=c.hours;ot+=c.ot;pay+=c.total-Math.max(0,+e.insuranceAmount||0);daysSet.add(entryDate(e))});$('calDays').textContent=daysSet.size;$('calHours').textContent=fmt(hours)+'h';$('calOT').textContent=fmt(ot)+'h';$('calPay').textContent=money(pay);$('calSummary').textContent=`${es.length} 筆紀錄`}
+function renderCalendar(){let y=calDate.getFullYear(),m=calDate.getMonth(),first=new Date(y,m,1),last=new Date(y,m+1,0),start=first.getDay(),days=last.getDate();$('calTitle').textContent=`${y} 年 ${m+1} 月`;let html='<div class="cal">';['日','一','二','三','四','五','六'].forEach(x=>html+=`<div class="calhead">${x}</div>`);let prev=new Date(y,m,0).getDate();for(let i=0;i<start;i++)html+=`<div class="calday muted"><div class="calnum">${prev-start+i+1}</div></div>`;for(let d=1;d<=days;d++){let key=`${y}-${pad(m+1)}-${pad(d)}`,es=db.entries.filter(e=>entryDate(e)===key).sort((a,b)=>a.start.localeCompare(b.start)),h=0,p=0;es.forEach(e=>{let c=calcEntry(e);h+=c.hours;p+=c.total});let now=new Date(),today=now.getFullYear()===y&&now.getMonth()===m&&now.getDate()===d;let shifts=es.map(e=>{let j=db.jobs.find(x=>x.id===e.jobId);let name=(e.workName||'').trim()||((j?.name||'').trim())||'未命名工作';let st=e.start.slice(11,16),en=e.end.slice(11,16),col=j?.color||'#315efb';let bg=col+'22';return `<div class="calshift" style="--job-color:${col};--job-bg:${bg}" title="${esc(name)} ${st}-${en}">${esc(name)}</div>`}).join('');html+=`<div class="calday ${today?'today':''}" onclick="openDay('${key}')"><div class="calnum">${d}${es.length?'<span class="caldot"></span>':''}</div>${es.length?`<div class="calwork">${shifts}</div><div class="calhours">${fmt(h)}h</div><div class="calpay">${p?money(p):'待確認'}</div>`:''}</div>`}let tail=(7-(start+days)%7)%7;for(let i=1;i<=tail;i++)html+=`<div class="calday muted"><div class="calnum">${i}</div></div>`;html+='</div>';$('calendarGrid').innerHTML=html;let es=db.entries.filter(e=>entryDate(e).slice(0,7)===monthKey(calDate)),hours=0,ot=0,pay=0,daysSet=new Set();es.forEach(e=>{let c=calcEntry(e);hours+=c.hours;ot+=c.ot;pay+=c.total-Math.max(0,+e.insuranceAmount||0);daysSet.add(entryDate(e))});$('calDays').textContent=daysSet.size;$('calHours').textContent=fmt(hours)+'h';$('calOT').textContent=fmt(ot)+'h';$('calPay').textContent=money(pay);$('calSummary').textContent=`${es.length} 筆紀錄`}
 function moveMonth(n){calDate=new Date(calDate.getFullYear(),calDate.getMonth()+n,1);selectedDate=null;$('selectedDay').classList.add('hidden');renderCalendar()}
 function openDay(key){selectedDate=key;$('selectedDay').classList.remove('hidden');$('selectedDayTitle').textContent=key.replaceAll('-',' / ');let es=db.entries.filter(e=>entryDate(e)===key);$('selectedDayList').innerHTML=es.length?es.map(e=>{let c=calcEntry(e);return `<div class="shift-row"><div class="row"><div><b>${e.start.slice(11,16)} → ${e.end.slice(11,16)}</b><div class="small">${esc(e.workName||db.jobs.find(j=>j.id===e.jobId)?.name||'工作')} · ${fmt(c.hours)}h · 勞保 ${money(e.insuranceAmount||0)}</div></div><div>${c.special?'<span class="pill badge-warn">待確認</span>':money(c.total)} <button class="btn ghost" onclick="editEntry('${e.id}')">編輯</button></div></div></div>`}).join(''):'<div class="empty">這天還沒有班次</div>'}
 function openEntryForSelected(){openEntry(selectedDate)}
-function render(){renderCalendar();let now=new Date(),ym=monthKey(now),es=db.entries.filter(e=>entryDate(e).slice(0,7)===ym),totalH=0,otH=0,total=0,normal=0,otp=0,special=0;es.forEach(e=>{let c=calcEntry(e);totalH+=c.hours;otH+=c.ot;total+=c.total;normal+=c.normal*c.rate;otp+=c.otPay;if(c.special)special+=c.hours*c.rate});$('homeMonth').textContent=now.toLocaleDateString('zh-TW',{year:'numeric',month:'long'});$('totalPay').textContent=money(total);$('totalHours').textContent=fmt(totalH)+' 小時';$('otHours').textContent=fmt(otH)+' 小時';let aj=db.jobs.find(j=>j.id===db.activeJob);$('activeJobPill').textContent=aj?aj.name:'尚未選擇工作';let recent=[...db.entries].sort((a,b)=>b.start.localeCompare(a.start)).slice(0,5);$('recent').innerHTML=recent.length?recent.map(entryHtml).join(''):'<div class="empty">還沒有工時紀錄</div>';$('jobList').innerHTML=db.jobs.length?db.jobs.map(j=>`<div class="job"><div class="row"><div><h3>${esc(j.name)}</h3><p>${j.payType==='hourly'?'時薪 '+money(j.amount):'月薪 '+money(j.amount)} · 正常 ${j.dailyHours} 小時/日</p>${j.note?`<p>${esc(j.note)}</p>`:''}</div><span class="pill ${db.activeJob===j.id?'':'badge-ok'}">${db.activeJob===j.id?'目前使用':'可使用'}</span></div><div style="margin-top:10px"><button class="btn ${db.activeJob===j.id?'':'secondary'}" onclick="setActive('${j.id}')">${db.activeJob===j.id?'目前工作':'使用此工作'}</button> <button class="btn ghost" onclick="editJob('${j.id}')">編輯</button> <button class="btn danger" onclick="deleteJob('${j.id}')">刪除</button></div></div>`).join(''):'<div class="empty">還沒有工作，先建立第一份工作吧。</div>';$('recordList').innerHTML=db.entries.length?[...db.entries].sort((a,b)=>b.start.localeCompare(a.start)).map(entryHtml).join(''):'<div class="empty">還沒有工時紀錄</div>';$('normalPay').textContent=money(normal);$('otPay').textContent=money(otp);$('specialPay').textContent=money(special);let insurance=es.reduce((sum,e)=>sum+Math.max(0,+e.insuranceAmount||0),0);if($('insurancePay'))$('insurancePay').textContent=money(insurance);$('sumPay').textContent=money(Math.max(0,total-insurance));$('sumMonth').textContent=now.toLocaleDateString('zh-TW',{year:'numeric',month:'long'});$('breakdown').innerHTML=es.length?es.map(e=>{let c=calcEntry(e),j=db.jobs.find(x=>x.id===e.jobId);return `<div class="entry" style="margin-bottom:9px"><h4>${esc(j?.name||'已刪除工作')} · ${fmt(c.hours)} 小時</h4>${c.special?`<p><span class="pill badge-warn">特殊日別：待確認法定算法</span></p>`:`<p>正常 ${fmt(c.normal)}h × ${money(c.rate)} = ${money(c.normal*c.rate)}</p><p>加班 ${fmt(c.ot)}h → <span class="money">${money(c.otPay)}</span></p>${c.otRest>0?`<p class="small">超過 4 小時的平日加班：${fmt(c.otRest)}h，第一版不自動套用其他法定情形。</p>`:''}`}</div>`}).join(''):'<div class="empty">本月尚無紀錄</div>';$('mult1').value=db.settings.m1;$('mult2').value=db.settings.m2}
+function render(){renderCalendar();let now=new Date(),ym=monthKey(now),es=db.entries.filter(e=>entryDate(e).slice(0,7)===ym),totalH=0,otH=0,total=0,normal=0,otp=0,special=0;es.forEach(e=>{let c=calcEntry(e);totalH+=c.hours;otH+=c.ot;total+=c.total;normal+=c.normal*c.rate;otp+=c.otPay;if(c.special)special+=c.hours*c.rate});$('homeMonth').textContent=now.toLocaleDateString('zh-TW',{year:'numeric',month:'long'});$('totalPay').textContent=money(total);$('totalHours').textContent=fmt(totalH)+' 小時';$('otHours').textContent=fmt(otH)+' 小時';let aj=db.jobs.find(j=>j.id===db.activeJob);$('activeJobPill').textContent=aj?aj.name:'尚未選擇工作';let recent=[...db.entries].sort((a,b)=>b.start.localeCompare(a.start)).slice(0,5);$('recent').innerHTML=recent.length?recent.map(entryHtml).join(''):'<div class="empty">還沒有工時紀錄</div>';$('jobList').innerHTML=db.jobs.length?db.jobs.map(j=>`<div class="job"><div class="row"><div><h3>${esc(j.name)}</h3><p>${j.payType==='hourly'?'時薪 '+money(j.amount):'月薪 '+money(j.amount)} · 正常 ${j.dailyHours} 小時/日</p>${j.note?`<p>${esc(j.note)}</p>`:''}</div><span class="pill ${db.activeJob===j.id?'':'badge-ok'}">${db.activeJob===j.id?'目前使用':'可使用'}</span></div><div style="margin-top:10px"><button class="btn ${db.activeJob===j.id?'':'secondary'}" onclick="setActive('${j.id}')">${db.activeJob===j.id?'目前工作':'使用此工作'}</button> <button class="btn ghost" onclick="editJob('${j.id}')">編輯</button> <button class="btn danger" onclick="deleteJob('${j.id}')">刪除</button></div></div>`).join(''):'<div class="empty">還沒有工作，先建立第一份工作吧。</div>';$('recordList').innerHTML=db.entries.length?[...db.entries].sort((a,b)=>b.start.localeCompare(a.start)).map(entryHtml).join(''):'<div class="empty">還沒有工時紀錄</div>';$('normalPay').textContent=money(normal);$('otPay').textContent=money(otp);$('specialPay').textContent=money(special);let insurance=es.reduce((sum,e)=>sum+Math.max(0,+e.insuranceAmount||0),0);if($('insurancePay'))$('insurancePay').textContent=money(insurance);$('sumPay').textContent=money(Math.max(0,total-insurance));$('sumMonth').textContent=now.toLocaleDateString('zh-TW',{year:'numeric',month:'long'});$('breakdown').innerHTML=es.length?es.map(e=>{let c=calcEntry(e),j=db.jobs.find(x=>x.id===e.jobId);return `<div class="entry" style="margin-bottom:9px"><h4>${esc(j?.name||'已刪除工作')} · ${fmt(c.hours)} 小時</h4>${c.special?`<p><span class="pill badge-warn">特殊日別：待確認法定算法</span></p>`:`<p>正常 ${fmt(c.normal)}h × ${money(c.rate)} = ${money(c.normal*c.rate)}</p><p>加班 ${fmt(c.ot)}h → <span class="money">${money(c.otPay)}</span></p>${c.otRest>0?`<p class="small"></p>`:''}`}</div>`}).join(''):'<div class="empty">本月尚無紀錄</div>';$('mult1').value=db.settings.m1;$('mult2').value=db.settings.m2}
 function setActive(id){db.activeJob=id;save();toast('已切換工作')}
 function deleteJob(id){if(!confirm('刪除工作？既有工時會保留，但會顯示為已刪除工作。'))return;db.jobs=db.jobs.filter(j=>j.id!==id);if(db.activeJob===id)db.activeJob=db.jobs[0]?.id||null;save()}
 function deleteEntry(id){if(!confirm('確定刪除這筆班次？'))return;db.entries=db.entries.filter(e=>e.id!==id);save()}
@@ -162,6 +162,7 @@ function importData(input){
       if(!confirm('還原備份會覆蓋目前手機上的資料，確定要還原嗎？')){input.value='';return;}
       db={jobs:incoming.jobs,entries:incoming.entries,settings:incoming.settings,activeJob:incoming.activeJob||incoming.jobs[0]?.id||null};
       localStorage.setItem(KEY,JSON.stringify(db));
+      window.db=db;
       render();
       toast('資料已成功還原');
     }catch(e){console.error(e);alert('還原失敗：'+e.message)}
@@ -175,6 +176,7 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 function resetAll(){if(!confirm('確定清除所有工作與工時？此動作無法復原。'))return;localStorage.removeItem(KEY);location.reload()}
 render();
 </script>
+
 
 <script>
 function fitCalendarNames(){
@@ -203,39 +205,41 @@ const calGrid=document.getElementById('calendarGrid');
 if(calGrid){new MutationObserver(()=>requestAnimationFrame(fitCalendarNames)).observe(calGrid,{childList:true,subtree:true});}
 </script>
 
+
+
 <script>
-let deferredInstallPrompt=null;
-window.addEventListener('beforeinstallprompt',e=>{
+// PWA 安裝與離線快取
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
-  deferredInstallPrompt=e;
-  const btn=document.getElementById('installBtn');
-  if(btn)btn.style.display='block';
-  const hint=document.getElementById('installHint');
-  if(hint)hint.textContent='可以直接安裝到手機桌面，之後會像 App 一樣開啟。';
+  deferredInstallPrompt = e;
+  const btn = document.getElementById('installBtn');
+  if (btn) btn.style.display = 'block';
+  const hint = document.getElementById('installHint');
+  if (hint) hint.textContent = '可以直接安裝到手機桌面，之後會像 App 一樣開啟。';
 });
-window.addEventListener('appinstalled',()=>{
-  deferredInstallPrompt=null;
-  const btn=document.getElementById('installBtn');
-  if(btn)btn.style.display='none';
-  const hint=document.getElementById('installHint');
-  if(hint)hint.textContent='已安裝完成，現在可以從手機桌面開啟「工時薪資助手」。';
+window.addEventListener('appinstalled', () => {
+  deferredInstallPrompt = null;
+  const btn = document.getElementById('installBtn');
+  if (btn) btn.style.display = 'none';
+  const hint = document.getElementById('installHint');
+  if (hint) hint.textContent = '已安裝完成，現在可以從手機桌面開啟「工時薪資助手」。';
 });
-document.addEventListener('DOMContentLoaded',()=>{
-  const btn=document.getElementById('installBtn');
-  if(btn)btn.addEventListener('click',async()=>{
-    if(deferredInstallPrompt){
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('installBtn');
+  if (btn) btn.addEventListener('click', async () => {
+    if (deferredInstallPrompt) {
       deferredInstallPrompt.prompt();
       await deferredInstallPrompt.userChoice;
-      deferredInstallPrompt=null;
-    }else{
+      deferredInstallPrompt = null;
+    } else {
       alert('若目前沒有安裝提示：請用 Android Chrome 開啟網站 → 右上角 ⋮ →「加入主畫面」或「安裝應用程式」。');
     }
   });
 });
-if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(console.error));
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(console.error));
 }
 </script>
 
-</body>
-</html>
+</body></html>
