@@ -1,4 +1,4 @@
-const CACHE = "tw-work-pay-v1";
+const CACHE = "tw-work-pay-v2";
 
 const ASSETS = [
   "./",
