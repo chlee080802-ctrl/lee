@@ -1,0 +1,19 @@
+{
+  "name": "台灣工時薪資助手",
+  "short_name": "工時薪資助手",
+  "description": "記工時、跨夜、自動試算薪資",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f7fb",
+  "theme_color": "#315efb",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
